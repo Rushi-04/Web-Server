@@ -1,98 +1,125 @@
-🖥️ Python Socket Web Server
+Simple Python Web Server
+This is a minimalist, single-file web server built from scratch in Python using the socket module. It's designed to serve static files and JSON data, demonstrating the fundamental principles of HTTP requests and responses without relying on web frameworks like Flask or Django.
 
-A simple HTTP server built from scratch using Python’s socket module.
-This project demonstrates the fundamentals of how web servers work internally, without relying on frameworks like Flask or Django.
+Features
+HTTP GET Handling: Responds to HTTP GET requests for specific paths.
 
-🚀 Features
+Static File Serving: Serves index.html for the root path (/).
 
-Serves static files:
+JSON API Endpoint: Serves book.json for the /book path, acting as a simple API.
 
-index.html → when visiting /
+Favicon Support: Correctly handles and serves the favicon.ico file.
 
-book.json → when visiting /book
+Error Handling: Provides appropriate HTTP status codes for various scenarios:
 
-favicon.ico → when browsers request site icon
+200 OK: For successful requests.
 
-Handles HTTP response codes:
+404 Not Found: For files or paths that don't exist.
 
-200 OK → for successful responses
+405 Method Not Allowed: For HTTP methods other than GET.
 
-404 Not Found → if a file doesn’t exist
+Connection Management: Uses a try-except block to gracefully handle client connections and a KeyboardInterrupt to shut down the server.
 
-405 Method Not Allowed → for unsupported methods
+Non-Blocking accept(): Employs settimeout(1) to prevent the server from blocking indefinitely, allowing for a clean shutdown.
 
-Graceful shutdown with Ctrl + C
+Requirements
+Python 3.x: This server is written in Python 3.
 
-Basic request logging (shows HTTP request in console)
+Required Files: The server expects the following files to be present in the same directory:
 
-Custom NotFound.html page if available
+index.html
 
-📂 Project Structure
+book.json
+
+favicon.ico
+
+NotFound.html (for custom 404 pages)
+
+Setup and Usage
+1. File Structure
+Ensure your project directory is set up with the following structure:
+
 .
-├── main.py          # The server code
-├── index.html       # Homepage (served at '/')
-├── book.json        # Example JSON response (served at '/book')
-├── favicon.ico      # Browser icon (served automatically)
-└── NotFound.html    # Optional custom 404 page
+├── main.py
+├── index.html
+├── book.json
+├── favicon.ico
+└── NotFound.html
+2. Running the Server
+To start the server, simply run the main.py script from your terminal:
 
-⚙️ How It Works
+Bash
 
-Listens on 0.0.0.0:8080 (all network interfaces, port 8080).
-
-Accepts incoming TCP connections from clients (like browsers).
-
-Parses the HTTP request line (method, path, version).
-
-Serves content depending on the requested path.
-
-Sends an HTTP response back to the client with proper headers and body.
-
-▶️ Running the Server
-# Clone this repo or copy the code
 python main.py
+You'll see a message indicating the server is running:
 
+Bash
 
-Then, open your browser and visit:
+Listening on port 8080 ...
+3. Accessing Endpoints
+Once the server is running, you can access the following endpoints in your web browser or with a tool like curl:
 
-http://localhost:8080/
- → serves index.html
+Homepage: http://localhost:8080/
 
-http://localhost:8080/book
- → serves book.json
+This will serve the content of index.html.
 
-Any invalid path → serves NotFound.html (if exists) or plain 404
+Book API: http://localhost:8080/book
 
-🛑 Stopping the Server
+This will serve the JSON content of book.json.
 
-Press Ctrl + C in the terminal:
+Favicon: http://localhost:8080/favicon.ico
 
-Shutting down server ...
-Server socket closed.
+This will serve the favicon.ico file.
 
-🎯 Why This Project Matters
+404 Not Found: http://localhost:8080/some-other-path
 
-Most developers rely on high-level frameworks, but here you implemented:
+This will return the content of NotFound.html with a 404 status code.
 
-Raw TCP socket programming
+Code Explanation
+Core Components
+The server's logic is encapsulated in a single main.py file. Here are the key parts:
 
-HTTP request/response parsing
+Socket Setup
+Python
 
-Static file serving logic
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server_socket.bind((SERVER_HOST, SERVER_PORT))
+server_socket.listen(5)
+server_socket.settimeout(1)
+This section initializes a TCP/IP socket, binds it to a specific host and port, and starts listening for incoming connections. The SO_REUSEADDR option allows the socket to be reused immediately after the server is shut down, and settimeout(1) makes the accept() call non-blocking, which is crucial for a clean KeyboardInterrupt.
 
-Error handling & graceful shutdown
+Main Loop
+Python
 
-This shows a deep understanding of how the web works under the hood.
+while True:
+    try:
+        client_socket, client_address = server_socket.accept()
+        # ... request processing ...
+    except socket.timeout:
+        continue
+The server runs in an infinite loop, continuously attempting to accept new client connections. The try...except socket.timeout block ensures the loop doesn't block forever if no clients connect, allowing the KeyboardInterrupt to be detected.
 
-🔮 Possible Improvements
+Request Parsing and Response Logic
+Python
 
-Add concurrency (ThreadPool or asyncio) for handling multiple clients.
+# Extract the HTTP method and path from the request
+http_method, path = first_header_component[0], first_header_component[1]
 
-Support POST requests and form submissions.
+# Conditional logic to handle different paths and methods
+if http_method == 'GET':
+    if path == '/':
+        # ... serve index.html ...
+    elif path == '/book':
+        # ... serve book.json ...
+    # ... and so on ...
+This part of the code reads the incoming HTTP request, extracts the method and the requested path from the first line of the header, and then uses a series of if/elif statements to determine which file to serve.
 
-Serve files from a static/ folder automatically.
+Sending the Response
+Python
 
-Add logging with timestamps and response codes.
+client_socket.sendall(response.encode())
+Once the response headers and content are generated, they are encoded into bytes and sent back to the client using sendall(). The sendall() method ensures that all the data is sent, which is more reliable than send().
 
-Build a simple router (like Flask) for cleaner path handling.
-
-✨ With this project, you’ve basically written a mini Flask clone from scratch!
+Contributing
+This project is a great starting point for understanding network programming in Python. If you want to contribute, feel free to fork the repository and submit a pull request with any improvements or new features.
