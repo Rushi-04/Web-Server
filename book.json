@@ -7,7 +7,7 @@
         "scripts": {
             "start": "python main.py"
         },
-        "author": "Your Name",
-        "license": "MIT"
+        "author": "Rishi",
+        "license": "MIT (Not Actually)"
     }
 }
