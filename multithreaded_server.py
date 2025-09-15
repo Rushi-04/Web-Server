@@ -74,7 +74,6 @@ server_socket.settimeout(1)
 
 print(f"Listening on port {PORT} ...")
 
-
 try:
     while True:
         try:
