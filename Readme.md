@@ -1,125 +1,102 @@
-Simple Python Web Server
-This is a minimalist, single-file web server built from scratch in Python using the socket module. It's designed to serve static files and JSON data, demonstrating the fundamental principles of HTTP requests and responses without relying on web frameworks like Flask or Django.
+# Simple Python Web Server
 
-Features
-HTTP GET Handling: Responds to HTTP GET requests for specific paths.
+A **minimalist web server** built from scratch in Python using the `socket` module.  
+It serves **static files** and **JSON data**, showcasing the **fundamentals of HTTP requests and responses** without relying on external frameworks.
 
-Static File Serving: Serves index.html for the root path (/).
+---
 
-JSON API Endpoint: Serves book.json for the /book path, acting as a simple API.
+## Features
 
-Favicon Support: Correctly handles and serves the favicon.ico file.
+-  **HTTP GET Handling** → Responds to `GET` requests for specific paths.  
+-  **Static File Serving** → Serves `index.html` at `/` and `NotFound.html` for unknown paths.  
+-  **JSON API Endpoint** → Provides `book.json` at `/book`.  
+-  **Favicon Support** → Correctly handles `/favicon.ico`.  
+-  **Robust Error Handling** → Returns proper HTTP status codes:
+  -  `200 OK` → Successful requests  
+  -  `404 Not Found` → Invalid paths  
+  -  `405 Method Not Allowed` → Non-GET methods  
+-  **Graceful Shutdown** → Uses `settimeout(1)` to prevent indefinite blocking and enables clean shutdown via **Ctrl + C**.  
 
-Error Handling: Provides appropriate HTTP status codes for various scenarios:
+---
 
-200 OK: For successful requests.
+## Requirements
 
-404 Not Found: For files or paths that don't exist.
+- **Python 3.x**  
+- Required files in the project directory:
+  - `index.html`  
+  - `book.json`  
+  - `favicon.ico`  
+  - `NotFound.html`  
 
-405 Method Not Allowed: For HTTP methods other than GET.
+---
 
-Connection Management: Uses a try-except block to gracefully handle client connections and a KeyboardInterrupt to shut down the server.
+## Project Structure
 
-Non-Blocking accept(): Employs settimeout(1) to prevent the server from blocking indefinitely, allowing for a clean shutdown.
-
-Requirements
-Python 3.x: This server is written in Python 3.
-
-Required Files: The server expects the following files to be present in the same directory:
-
-index.html
-
-book.json
-
-favicon.ico
-
-NotFound.html (for custom 404 pages)
-
-Setup and Usage
-1. File Structure
-Ensure your project directory is set up with the following structure:
-
+```bash
 .
 ├── main.py
 ├── index.html
 ├── book.json
 ├── favicon.ico
 └── NotFound.html
-2. Running the Server
-To start the server, simply run the main.py script from your terminal:
+```
 
-Bash
+---
 
+## Usage
+
+###  Run the Server
+```bash
 python main.py
-You'll see a message indicating the server is running:
+```
 
-Bash
+### Access Endpoints
+-  **Homepage** → [http://localhost:8080/](http://localhost:8080/)  
+  Serves `index.html`  
 
-Listening on port 8080 ...
-3. Accessing Endpoints
-Once the server is running, you can access the following endpoints in your web browser or with a tool like curl:
+-  **Book API** → [http://localhost:8080/book](http://localhost:8080/book)  
+  Serves `book.json`  
 
-Homepage: http://localhost:8080/
+-  **Favicon** → [http://localhost:8080/favicon.ico](http://localhost:8080/favicon.ico)  
+  Serves `favicon.ico`  
 
-This will serve the content of index.html.
+-  **404 Not Found** → [http://localhost:8080/invalid](http://localhost:8080/invalid)  
+  Serves `NotFound.html` with a `404 Not Found` status  
 
-Book API: http://localhost:8080/book
+---
 
-This will serve the JSON content of book.json.
+##  How It Works
 
-Favicon: http://localhost:8080/favicon.ico
+### Socket Setup
+- Creates a TCP socket and binds to port `8080`.  
+- Uses `SO_REUSEADDR` for immediate reuse after shutdown.  
+- `settimeout(1)` ensures the server loop remains responsive.  
 
-This will serve the favicon.ico file.
+###  Request Parsing
+- Reads the incoming HTTP request.  
+- Extracts the **method** and **path** from the header.  
+- Routes requests to the correct file or response logic.  
 
-404 Not Found: http://localhost:8080/some-other-path
+###  Response Building
+- Constructs HTTP headers + body.  
+- Sends the response back using `sendall()`.  
 
-This will return the content of NotFound.html with a 404 status code.
+---
 
-Code Explanation
-Core Components
-The server's logic is encapsulated in a single main.py file. Here are the key parts:
+##  Why This Project?
 
-Socket Setup
-Python
+This project is a **great starting point** for learning:
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server_socket.bind((SERVER_HOST, SERVER_PORT))
-server_socket.listen(5)
-server_socket.settimeout(1)
-This section initializes a TCP/IP socket, binds it to a specific host and port, and starts listening for incoming connections. The SO_REUSEADDR option allows the socket to be reused immediately after the server is shut down, and settimeout(1) makes the accept() call non-blocking, which is crucial for a clean KeyboardInterrupt.
+-  Network programming in Python  
+-  How HTTP requests/responses work at a low level  
+-  The basics of building your own server  
 
-Main Loop
-Python
+It can be extended into something bigger:  
+-  Add routing logic  
+-  Implement `POST`/`PUT` support  
+-  Add concurrency with `asyncio` or `ThreadPoolExecutor`  
 
-while True:
-    try:
-        client_socket, client_address = server_socket.accept()
-        # ... request processing ...
-    except socket.timeout:
-        continue
-The server runs in an infinite loop, continuously attempting to accept new client connections. The try...except socket.timeout block ensures the loop doesn't block forever if no clients connect, allowing the KeyboardInterrupt to be detected.
 
-Request Parsing and Response Logic
-Python
+---
 
-# Extract the HTTP method and path from the request
-http_method, path = first_header_component[0], first_header_component[1]
-
-# Conditional logic to handle different paths and methods
-if http_method == 'GET':
-    if path == '/':
-        # ... serve index.html ...
-    elif path == '/book':
-        # ... serve book.json ...
-    # ... and so on ...
-This part of the code reads the incoming HTTP request, extracts the method and the requested path from the first line of the header, and then uses a series of if/elif statements to determine which file to serve.
-
-Sending the Response
-Python
-
-client_socket.sendall(response.encode())
-Once the response headers and content are generated, they are encoded into bytes and sent back to the client using sendall(). The sendall() method ensures that all the data is sent, which is more reliable than send().
-
-Contributing
-This project is a great starting point for understanding network programming in Python. If you want to contribute, feel free to fork the repository and submit a pull request with any improvements or new features.
+ *“The best way to understand web servers is to build one yourself.”*
