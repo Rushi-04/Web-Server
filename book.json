@@ -1,0 +1,13 @@
+{
+    "data" : {
+        "name": "Web-Server",
+        "version": "1.0.0",
+        "description": "A simple web server using Python's socket library.",
+        "main": "main.py",
+        "scripts": {
+            "start": "python main.py"
+        },
+        "author": "Your Name",
+        "license": "MIT"
+    }
+}
